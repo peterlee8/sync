@@ -1,5 +1,8 @@
 package com.sync.util;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,8 +27,14 @@ public class HttpUtilTest {
 
     @Test
     public void request() throws Exception {
-        String s=HttpUtil.httpsRequest("https://kyfw.12306.cn/","GET",null);
-        System.out.println(s);
+        String s=HttpUtil.httpsRequest("https://mamingrui.top/broada/gethost1.json","GET",null);
+        JSONObject jsonObject = (JSONObject) JSON.parse(s);
+        System.out.println(jsonObject.getString("success"));
+        JSONArray data =(JSONArray) jsonObject.get("data");
+        data.forEach(d->{
+            JSONObject dataJson = (JSONObject) d;
+            System.out.println(dataJson.getString("HOST_ID"));
+        });
     }
 
 }

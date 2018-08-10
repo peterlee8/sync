@@ -4,6 +4,7 @@ import com.sync.trustManager.MyX509TrustManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.ParseException;
+import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
@@ -17,10 +18,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
+import javax.net.ssl.*;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -36,81 +34,50 @@ public class HttpUtil {
     private static Logger log = Logger.getLogger(HttpUtil.class);
 
     /**
-     *  发送 post请求
-     * @param info
+     * post请求（用于请求json格式的参数）
      * @param url
-     * @param headerMap
+     * @param params
      * @return
-     * @throws Exception
      */
-    public static String post(String info, String url, Map<String, String> headerMap) throws Exception {
-        log.info("post提交数据 " + info);
+    public static String post(String url, String params) throws Exception {
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost(url);// 创建httpPost
+        httpPost.setHeader("Accept", "application/json");
+        httpPost.setHeader("Content-Type", "application/json");
+        String charSet = "UTF-8";
+        StringEntity entity = new StringEntity(params, charSet);
+        httpPost.setEntity(entity);
+        CloseableHttpResponse response = null;
 
-        //HttpClient4.5.2请求时出现Cookie rejected警告的解决方法
-        RequestConfig globalConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build();
-        HttpClientBuilder globalBuilder = HttpClients.custom().setDefaultRequestConfig(globalConfig);
-        //CloseableHttpClient client = HttpClients.custom().setDefaultRequestConfig(globalConfig).build();
+        try {
 
-        // 创建默认的httpClient实例.
-        //CloseableHttpClient httpclient = HttpClients.createDefault();
-        CloseableHttpClient httpclient = globalBuilder.build();
-
-        String body = "";
-
-        String jsonStr = info;
-
-        // 创建httppost
-        HttpPost httppost = new HttpPost(url);
-
-        //设置头部信息
-        if(headerMap != null){
-            Iterator it = headerMap.entrySet().iterator();
-            while (it.hasNext()) {
-                String key;
-                String value;
-                Map.Entry entry = (Map.Entry) it.next();
-                key = entry.getKey().toString();
-                value = entry.getValue().toString();
-                httppost.setHeader(key, value);
+            response = httpclient.execute(httpPost);
+            StatusLine status = response.getStatusLine();
+            int state = status.getStatusCode();
+            if (state == HttpStatus.SC_OK) {
+                HttpEntity responseEntity = response.getEntity();
+                String jsonString = EntityUtils.toString(responseEntity);
+                return jsonString;
+            }
+            else{
+                log.error("请求返回:"+state+"("+url+")");
             }
         }
-
-        StringEntity stringEntity;
-        try {
-            stringEntity = new StringEntity(jsonStr, Charset.forName("UTF-8"));
-            httppost.setEntity(stringEntity);
-            log.info("executing request " + httppost.getURI());
-            CloseableHttpResponse response = httpclient.execute(httppost);
-            try {
-                HttpEntity entity = response.getEntity();
-
-                int statusCode = response.getStatusLine().getStatusCode();
-                log.info("statusCode:" + statusCode);
-                if (statusCode != HttpStatus.SC_OK) {
-                    log.error("Method failed:" + response.getStatusLine());
+        finally {
+            if (response != null) {
+                try {
+                    response.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-
-                if (entity != null) {
-                    // Read the response body
-                    body = EntityUtils.toString(entity, "UTF-8");
-//             log.info("Response content: " + body);
-                }
-            } finally {
-                response.close();
             }
-        } finally {
-            // 关闭连接,释放资源
             try {
                 httpclient.close();
             } catch (IOException e) {
-                //e.printStackTrace();
-                log.error(e);
+                e.printStackTrace();
             }
         }
-        log.info("post返回数据 " + body);
-
-        return body;
-
+        return null;
     }
 
     /**
@@ -193,12 +160,19 @@ public class HttpUtil {
         StringBuffer buffer=null;
         try{
             //创建SSLContext
-            SSLContext sslContext=SSLContext.getInstance("SSL");
+            SSLContext sslContext = SSLContext.getInstance("SSL", "SunJSSE");
             TrustManager[] tm={new MyX509TrustManager()};
             //初始化
-            sslContext.init(null, tm, new java.security.SecureRandom());;
+            sslContext.init(null, tm, new java.security.SecureRandom());
             //获取SSLSocketFactory对象
             SSLSocketFactory ssf=sslContext.getSocketFactory();
+
+            HostnameVerifier hv = (urlHostName, session) -> {
+                log.info("Warning: URL Host: " + urlHostName + " vs. " + session.getPeerHost());
+                return true;
+            };
+
+            HttpsURLConnection.setDefaultHostnameVerifier(hv);
             URL url=new URL(requestUrl);
             HttpsURLConnection conn=(HttpsURLConnection)url.openConnection();
             conn.setDoOutput(true);
@@ -228,4 +202,5 @@ public class HttpUtil {
         }
         return buffer.toString();
     }
+
 }
