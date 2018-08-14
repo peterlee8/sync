@@ -56,8 +56,12 @@ public class HttpUtil {
             int state = status.getStatusCode();
             if (state == HttpStatus.SC_OK || state ==HttpStatus.SC_NO_CONTENT) {
                 HttpEntity responseEntity = response.getEntity();
+                if (responseEntity != null){
                 String jsonString = EntityUtils.toString(responseEntity);
-                return jsonString;
+                    return jsonString;
+                }else{
+                    return null;
+                }
             }
             else{
                 log.error("请求返回:"+state+"("+url+")");

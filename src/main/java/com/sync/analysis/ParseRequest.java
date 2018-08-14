@@ -24,7 +24,7 @@ public class ParseRequest {
     //同步到cmdb中数据
     private static final String POST_CMDB = "http://192.168.0.91/store/openapi/v2/resources/batch_save?apikey=e10adc3949ba59abbe56e057f2gg88dd";
     //同步到monitror数据
-    private static final String POST_MONITOR = "http://116.62.244.181/monitor/openapi/v2/hosts/create?apikey=e10adc3949ba59abbe56e057f2gg88dd";
+    private static final String POST_MONITOR = "http://192.168.0.91/monitor/openapi/v2/hosts/create?apikey=e10adc3949ba59abbe56e057f2gg88dd";
 
 
 

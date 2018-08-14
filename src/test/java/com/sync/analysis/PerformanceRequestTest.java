@@ -21,7 +21,7 @@ public class PerformanceRequestTest {
     @Test
     public void getDetailByHostId() throws Exception {
         PerformanceRequest request = new PerformanceRequest();
-        JSONObject jsonObject = request.getDetailByHostId("18943");
+        JSONObject jsonObject = request.getDetailByHostId("18925");
         System.out.println(jsonObject.toJSONString());
     }
 

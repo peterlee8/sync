@@ -21,7 +21,7 @@ public class PerformanceRequest {
     private static final String GET_URL = "https://mamingrui.top/broada/gethost1.json";
     //根据host_id 获取对应的详细参数
     private static final String GET_DETAIL = "https://mamingrui.top/AppNodeService/zhyw/api/getItemsValue?HOST_ID=%s";
-    //现场-》根据host_id 获取对应的详细参数
+    //现场->根据host_id 获取对应的详细参数
     //private static final String GET_DETAIL = "https://mamingrui.top/AppNodeService/zhyw/api/getItemsValue?param={HOST_ID:+%s}";
     //monitor推送指标
     private static final String POST_DETAIL = "http://10.20.67.178/monitor/openapi/v2/datapoints/create?apikey=e10adc3949ba59abbe56e057f2gg88dd";
